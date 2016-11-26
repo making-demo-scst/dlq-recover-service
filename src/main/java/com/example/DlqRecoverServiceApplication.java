@@ -1,5 +1,6 @@
 package com.example;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,9 +12,7 @@ import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.messaging.Message;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @SpringBootApplication
 @RestController
@@ -40,19 +39,24 @@ public class DlqRecoverServiceApplication {
 
 	Map<String, Message> deadLetters = new ConcurrentHashMap<>();
 
-	@GetMapping
-	Object deadLetters() {
-		return deadLetters;
+	@GetMapping(path = "dlqs")
+	Collection<Message> deadLetters() {
+		return deadLetters.values();
 	}
 
-	@GetMapping(path = "redeliver/{uuid}")
-	String redeliver(@PathVariable("uuid") String uuid) {
-		Message message = deadLetters.get(uuid);
+	@DeleteMapping(path = "dlqs/{uuid}")
+	void deleteDeadLetter(@PathVariable("uuid") String uuid) {
+		deadLetters.remove(uuid);
+	}
+
+	@PostMapping(path = "redeliver")
+	String redeliver(@RequestBody RecoverRequest req) {
+		Message message = deadLetters.get(req.getUuid());
 		String queue = ((Map) (message.getHeaders().get("x-death", List.class).get(0)))
 				.get("queue").toString();
 		log.info("redeliver[{}] {}", queue, message);
 		messagingTemplate.send(queue, message);
-		deadLetters.remove(uuid);
+		deadLetters.remove(req.getUuid());
 		return "OK";
 	}
 }

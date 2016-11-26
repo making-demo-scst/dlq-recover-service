@@ -1,0 +1,22 @@
+
+body {
+    padding:50px;
+    /*font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;*/
+    /*color: #777;*/
+    /*font-weight: 300;*/
+}
+
+
+.wrapper {
+    width:90%;
+    margin:0 auto;
+}
+
+pre code {
+    background: #f5f7fa;
+    color: #69707a;
+    display: block;
+    overflow-x: auto;
+    padding: 16px 20px;
+    text-wrap: normal;
+}
